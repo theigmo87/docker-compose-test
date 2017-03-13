@@ -1,0 +1,74 @@
+version: '2'
+services:
+
+  entry:
+    image: dockercloud/haproxy:latest
+    links: 
+      - homeserver
+      - goapi
+      - goproxy
+      - subdomainserver
+    ports:
+      - 80:80
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    environment:
+      - ADDITIONAL_SERVICES=project_dir:homeserver,project_dir:goapi,project_dir:goproxy,subdomainapp:subdomainserver
+
+  goapi:
+    image: goapi
+    environment:
+      - VIRTUAL_HOST=api.workful.local
+
+  homeserver:
+    image: dockerhelloworld
+    environment: 
+      - NAME="regular home page"
+      - VIRTUAL_HOST=workful.local
+
+  goproxy:
+    image: goproxy
+    depends_on: 
+      - subdomainserver
+    environment: 
+      - VIRTUAL_HOST=taxslayer.workful.local
+
+  subdomainserver:
+    image: dockerhelloworld
+    environment: 
+      - NAME="subdomain home page"
+      - VIRTUAL_HOST=demo2.workful.local
+
+  # entry:
+  #   image: jwilder/nginx-proxy
+  #   container_name: nginx-proxy
+  #   ports:
+  #     - "80:80"
+  #   volumes:
+  #     - /var/run/docker.sock:/tmp/docker.sock:ro
+
+  # goapi:
+  #   image: goapi
+  #   environment:
+  #     - VIRTUAL_HOST=api.workful.local
+
+  # homeserver:
+  #   image: shw
+  #   environment: 
+  #     - NAME="regular home page"
+  #     - VIRTUAL_HOST=workful.local
+
+  # goproxy:
+  #   image: goproxy
+  #   links: 
+  #     - homeserver
+  #     - subdomainserver
+  #   environment: 
+  #     - VIRTUAL_HOST=*.workful.local
+
+  # subdomainserver:
+  #   image: shw
+  #   ports:
+  #     - "8081"
+  #   environment: 
+  #     - NAME="subdomain home page"
